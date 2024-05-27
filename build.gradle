@@ -89,7 +89,8 @@ jar {
 }
 
 processResources {
+	inputs.property "mod_version", project.mod_version
 	filesMatching("fabric.mod.json") {
-		expand project.properties
+		expand "mod_version": project.mod_version
 	}
 }
