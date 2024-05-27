@@ -153,7 +153,7 @@ public class ProxVCClient implements ClientModInitializer {
     }
 
     private void render(Minecraft client, WorldRenderer renderer) {
-        if (isDisconnected())
+        if (isDisconnected() || !client.gameSettings.immersiveMode.drawOverlays())
             return;
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, client.renderEngine.getTexture("/proxvc.png"));
         GL11.glColor4d(1.0, 1.0, 1.0, 1.0);

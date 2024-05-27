@@ -38,26 +38,15 @@ repositories {
 			artifact()
 		}
 	}
-	ivy {
-		name = "Fabric Loader, HalpLibe"
-		url = "https://github.com/Turnip-Labs"
-		patternLayout {
-			artifact "[organisation]/releases/download/[revision]/[module]-[revision].jar"
-			m2compatible = true
-		}
-		metadataSources {
-			artifact()
-		}
-	}
 	maven {
 		name = "Babric"
 		url = "https://maven.glass-launcher.net/babric"
 	}
 	ivy {
-		name = "Mod Menu"
+		name = "Fabric Loader, HalpLibe, Mod Menu"
 		url = "https://github.com/Turnip-Labs"
 		patternLayout {
-			artifact "[organisation]/releases/download/[revision]/[module]-bta-[revision].jar"
+			artifact "[organisation]/releases/download/[revision]/[module]-[revision].jar"
 			m2compatible = true
 		}
 		metadataSources {
@@ -80,7 +69,7 @@ dependencies {
 	implementation "org.apache.logging.log4j:log4j-slf4j18-impl:2.16.0"
 	implementation "com.google.guava:guava:33.0.0-jre"
 
-	modRuntimeOnly "ModMenu:ModMenu:${project.mod_menu_version}"
+	modRuntimeOnly "ModMenu:ModMenu-bta:${project.mod_menu_version}"
 }
 
 java {
