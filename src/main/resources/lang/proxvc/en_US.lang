@@ -1,3 +1,4 @@
-gui.options.page.controls.category.proxvc=Proximity Voice Chat
+gui.options.page.controls.category.proxvc=Voice Chat
 key.mute=Mute Microphone
+key.push_to_talk=Push-to-Talk
 key.vc_options=Voice Chat Options

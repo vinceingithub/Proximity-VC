@@ -20,6 +20,7 @@ import net.minecraft.core.entity.player.EntityPlayer;
 import net.minecraft.core.net.packet.Packet1Login;
 import net.minecraft.core.util.phys.Vec3d;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
 import org.lwjgl.opengl.GL11;
@@ -43,7 +44,9 @@ public class ProxVCClient implements ClientModInitializer {
     private Thread outputThread;
 
     public final KeyBinding keyMute = new KeyBinding("key.mute").bindKeyboard(Keyboard.KEY_M);
+    public final KeyBinding keyPushToTalk = new KeyBinding("key.push_to_talk").bindMouse(4);
     public final KeyBinding keyVCOptions = new KeyBinding("key.vc_options").bindKeyboard(Keyboard.KEY_V);
+    public boolean usePushToTalk = false;
     public boolean isMuted = false;
     private boolean isMutePressed = false;
     private boolean isVCOptionsPressed = false;
@@ -67,6 +70,7 @@ public class ProxVCClient implements ClientModInitializer {
         OptionsPages.CONTROLS.withComponent(
                 new OptionsCategory("gui.options.page.controls.category.proxvc")
                         .withComponent(new KeyBindingComponent(keyMute))
+                        .withComponent(new KeyBindingComponent(keyPushToTalk))
                         .withComponent(new KeyBindingComponent(keyVCOptions))
         );
 
@@ -162,6 +166,8 @@ public class ProxVCClient implements ClientModInitializer {
             u = 0.25;
         else if (device.isClosed())
             u = 0.5;
+        else if (usePushToTalk && !keyPushToTalk.isPressed())
+            u = 0.75;
         Tessellator.instance.startDrawingQuads();
         Tessellator.instance.setColorRGBA_F(1f, 1f, 1f, 0.5f);
         Tessellator.instance.drawRectangleWithUV(4, client.resolution.scaledHeight - 24 - 4, 24, 24, u, 0.0, 0.25, 1.0);
