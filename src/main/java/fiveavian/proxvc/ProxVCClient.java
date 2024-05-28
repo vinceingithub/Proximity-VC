@@ -2,17 +2,19 @@ package fiveavian.proxvc;
 
 import fiveavian.proxvc.api.ClientEvents;
 import fiveavian.proxvc.gui.GuiVCOptions;
+import fiveavian.proxvc.util.OptionStore;
 import fiveavian.proxvc.vc.AudioInputDevice;
 import fiveavian.proxvc.vc.StreamingAudioSource;
 import fiveavian.proxvc.vc.client.VCInputClient;
 import fiveavian.proxvc.vc.client.VCOutputClient;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.options.components.BooleanOptionComponent;
+import net.minecraft.client.gui.options.components.FloatOptionComponent;
 import net.minecraft.client.gui.options.components.KeyBindingComponent;
 import net.minecraft.client.gui.options.components.OptionsCategory;
 import net.minecraft.client.gui.options.data.OptionsPages;
-import net.minecraft.client.option.InputDevice;
-import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.option.*;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.core.entity.Entity;
@@ -20,11 +22,11 @@ import net.minecraft.core.entity.player.EntityPlayer;
 import net.minecraft.core.net.packet.Packet1Login;
 import net.minecraft.core.util.phys.Vec3d;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
 import org.lwjgl.opengl.GL11;
 
+import java.io.File;
 import java.net.DatagramSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -46,10 +48,18 @@ public class ProxVCClient implements ClientModInitializer {
     public final KeyBinding keyMute = new KeyBinding("key.mute").bindKeyboard(Keyboard.KEY_M);
     public final KeyBinding keyPushToTalk = new KeyBinding("key.push_to_talk").bindMouse(4);
     public final KeyBinding keyVCOptions = new KeyBinding("key.vc_options").bindKeyboard(Keyboard.KEY_V);
-    public boolean usePushToTalk = false;
+    public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk, keyVCOptions};
+    public FloatOption voiceChatVolume;
+    public BooleanOption usePushToTalk;
+    public Option<?>[] options;
+    public File optionFile;
     public boolean isMuted = false;
     private boolean isMutePressed = false;
     private boolean isVCOptionsPressed = false;
+
+    public boolean isDisconnected() {
+        return !client.isMultiplayerWorld() || serverAddress == null;
+    }
 
     @Override
     public void onInitializeClient() {
@@ -61,12 +71,20 @@ public class ProxVCClient implements ClientModInitializer {
         ClientEvents.DISCONNECT.add(this::disconnect);
     }
 
-    public boolean isDisconnected() {
-        return !client.isMultiplayerWorld() || serverAddress == null;
-    }
-
     private void start(Minecraft client) {
         this.client = client;
+        voiceChatVolume = new FloatOption(client.gameSettings, "sound.voice_chat", 1.0f);
+        usePushToTalk = new BooleanOption(client.gameSettings, "use_push_to_talk", false);
+        options = new Option[]{voiceChatVolume, usePushToTalk};
+
+        optionFile = new File(client.mcDataDir, "proxvc_client.properties");
+        OptionStore.loadOptions(optionFile, options, keyBindings);
+        OptionStore.saveOptions(optionFile, options, keyBindings);
+        OptionsPages.AUDIO.withComponent(
+                new OptionsCategory("gui.options.page.audio.category.proxvc")
+                        .withComponent(new FloatOptionComponent(voiceChatVolume))
+                        .withComponent(new BooleanOptionComponent(usePushToTalk))
+        );
         OptionsPages.CONTROLS.withComponent(
                 new OptionsCategory("gui.options.page.controls.category.proxvc")
                         .withComponent(new KeyBindingComponent(keyMute))
@@ -90,6 +108,8 @@ public class ProxVCClient implements ClientModInitializer {
     }
 
     private void stop(Minecraft client) {
+        OptionStore.saveOptions(optionFile, options, keyBindings);
+
         try {
             if (socket != null)
                 socket.close();
@@ -166,7 +186,7 @@ public class ProxVCClient implements ClientModInitializer {
             u = 0.25;
         else if (device.isClosed())
             u = 0.5;
-        else if (usePushToTalk && !keyPushToTalk.isPressed())
+        else if (usePushToTalk.value && !keyPushToTalk.isPressed())
             u = 0.75;
         Tessellator.instance.startDrawingQuads();
         Tessellator.instance.setColorRGBA_F(1f, 1f, 1f, 0.5f);

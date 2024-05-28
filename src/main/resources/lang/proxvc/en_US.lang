@@ -1,4 +1,7 @@
 gui.options.page.controls.category.proxvc=Voice Chat
+gui.options.page.audio.category.proxvc=Voice Chat
 key.mute=Mute Microphone
 key.push_to_talk=Push-to-Talk
 key.vc_options=Voice Chat Options
+options.sound.voice_chat=Voice Chat Volume
+options.use_push_to_talk=Use Push-to-Talk

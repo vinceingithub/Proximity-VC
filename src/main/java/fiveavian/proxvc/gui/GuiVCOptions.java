@@ -23,17 +23,14 @@ public class GuiVCOptions extends GuiScreen {
 
     @Override
     public void init() {
-        controlList.add(new GuiButton(0, 0, 0, "Turn Push-to-Talk " + (client.usePushToTalk ? "Off" : "On")));
-        controlList.add(new GuiButton(1, 0, 20, "No Microphone"));
+        controlList.add(new GuiButton(0, width / 2 - 100, 10, "No Microphone"));
         for (int i = 0; i < specifiers.length; i++)
-            controlList.add(new GuiButton(i + 2, 0, i * 20 + 40, specifiers[i]));
+            controlList.add(new GuiButton(i + 1, width / 2 - 100, i * 25 + 35, specifiers[i]));
     }
 
     @Override
     protected void buttonPressed(GuiButton button) {
         if (button.id == 0)
-            client.usePushToTalk = !client.usePushToTalk;
-        else if (button.id == 1)
             client.device.open(null);
         else
             client.device.open(button.displayString);

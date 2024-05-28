@@ -5,3 +5,4 @@ accessible field net/minecraft/server/net/handler/NetServerHandler playerEntity 
 accessible field net/minecraft/server/entity/EntityTracker trackedEntityHashTable Lnet/minecraft/core/world/pathfinder/IdHashMap;
 accessible field net/minecraft/client/net/handler/NetClientHandler netManager Lnet/minecraft/core/net/NetworkManager;
 accessible field net/minecraft/core/net/NetworkManager networkSocket Ljava/net/Socket;
+accessible field net/minecraft/client/Minecraft mcDataDir Ljava/io/File;
