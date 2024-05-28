@@ -173,6 +173,7 @@ public class ProxVCClient implements ClientModInitializer {
             AL10.alSource3f(source.source, AL10.AL_POSITION, (float) entity.x, (float) entity.y, (float) entity.z);
             AL10.alSource3f(source.source, AL10.AL_DIRECTION, (float) look.xCoord, (float) look.yCoord, (float) look.zCoord);
             AL10.alSource3f(source.source, AL10.AL_VELOCITY, (float) entity.xd, (float) entity.yd, (float) entity.zd);
+            AL10.alSourcef(source.source, AL10.AL_GAIN, voiceChatVolume.value);
         }
     }
 
