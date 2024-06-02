@@ -5,7 +5,8 @@
   "name": "ProxVC",
   "description": "A primitive voice chat mod for Better Than Adventure!",
   "authors": [
-    "5Avian"
+    "5Avian",
+    "DoctorZeppelin"
   ],
   "icon": "proxvc_icon.png",
   "license": "MIT",

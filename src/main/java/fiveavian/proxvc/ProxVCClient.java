@@ -2,7 +2,7 @@ package fiveavian.proxvc;
 
 import fiveavian.proxvc.api.ClientEvents;
 import fiveavian.proxvc.gui.AudioInputDeviceComponent;
-import fiveavian.proxvc.gui.GuiVCOptions;
+import fiveavian.proxvc.util.MicrophoneUtil;
 import fiveavian.proxvc.util.OptionStore;
 import fiveavian.proxvc.vc.AudioInputDevice;
 import fiveavian.proxvc.vc.StreamingAudioSource;
@@ -50,9 +50,8 @@ public class ProxVCClient implements ClientModInitializer {
     private Thread outputThread;
 
     public final KeyBinding keyMute = new KeyBinding("key.mute").bindKeyboard(Keyboard.KEY_M);
-    public final KeyBinding keyPushToTalk = new KeyBinding("key.push_to_talk").bindMouse(4);
-    public final KeyBinding keyVCOptions = new KeyBinding("key.vc_options").bindKeyboard(Keyboard.KEY_V);
-    public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk, keyVCOptions};
+    public final KeyBinding keyPushToTalk = new KeyBinding("key.push_to_talk").bindKeyboard(Keyboard.KEY_V);
+    public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk};
     public FloatOption voiceChatVolume;
     public BooleanOption usePushToTalk;
     public IntegerOption AudioInput;
@@ -60,7 +59,7 @@ public class ProxVCClient implements ClientModInitializer {
     public File optionFile;
     public boolean isMuted = false;
     private boolean isMutePressed = false;
-    private boolean isVCOptionsPressed = false;
+
 
     public boolean isDisconnected() {
         return !client.isMultiplayerWorld() || serverAddress == null;
@@ -102,7 +101,6 @@ public class ProxVCClient implements ClientModInitializer {
                 new OptionsCategory("gui.options.page.controls.category.proxvc")
                         .withComponent(new KeyBindingComponent(keyMute))
                         .withComponent(new KeyBindingComponent(keyPushToTalk))
-                        .withComponent(new KeyBindingComponent(keyVCOptions))
         );
 
 
@@ -168,12 +166,6 @@ public class ProxVCClient implements ClientModInitializer {
                 isMuted = !isMuted;
             }
 
-            if (keyVCOptions.isPressEvent(InputDevice.KEYBOARD))
-                isVCOptionsPressed = true;
-            if (keyVCOptions.isReleaseEvent(InputDevice.KEYBOARD) && isVCOptionsPressed) {
-                isVCOptionsPressed = false;
-                client.displayGuiScreen(new GuiVCOptions(this));
-            }
         }
 
         for (Entity entity : client.theWorld.loadedEntityList) {
@@ -210,6 +202,9 @@ public class ProxVCClient implements ClientModInitializer {
     }
 
     private void login(Minecraft client, Packet1Login packet) {
+        //Check if a Microphone has previously been selected in settings, and update it
+        MicrophoneUtil.updateMicrophone(AudioInput.value, this);
+
         Socket socket = client.getSendQueue().netManager.networkSocket;
         serverAddress = socket.getRemoteSocketAddress();
     }

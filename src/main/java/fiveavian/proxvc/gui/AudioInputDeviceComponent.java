@@ -5,9 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.options.components.ButtonComponent;
 import net.minecraft.client.option.IntegerOption;
-import org.lwjgl.openal.ALC10;
-import org.lwjgl.openal.ALC11;
-import org.lwjgl.openal.OpenALException;
+import fiveavian.proxvc.util.MicrophoneUtil;
 
 public class AudioInputDeviceComponent extends ButtonComponent {
     private final IntegerOption option;
@@ -20,27 +18,21 @@ public class AudioInputDeviceComponent extends ButtonComponent {
     public AudioInputDeviceComponent(ProxVCClient client, IntegerOption option) {
         super("options." + option.name);
         this.client = client;
-        String result = null;
-        try {
-            result = ALC10.alcGetString(null, ALC11.ALC_CAPTURE_DEVICE_SPECIFIER);
-        } catch (OpenALException ignored) {
-        }
-        specifiers = result == null ? new String[0] : result.split("\0");
+        this.specifiers = MicrophoneUtil.getSpecifiers();
         this.option = option;
-        this.button = new GuiButton(0, 0, 0, 150, 20, this.specifiers[this.option.value]);
+        this.button = new GuiButton(0, 0, 0, 150, 20, "No Microphone");
     }
 
     protected void buttonClicked(int mouseButton, int x, int y, int width, int height, int relativeMouseX, int relativeMouseY) {
         //Reset if its beyond mic amount
         if (this.option.value >= specifiers.length - 1){
-            this.option.set(0);
+            this.option.set(-1);
         }
         else{
             this.option.set(this.option.value + 1);
         }
-        System.out.println(this.option.value);
         this.updateString();
-        this.updateMicrophone();
+        MicrophoneUtil.updateMicrophone(this.option.value, this.client);
     }
 
     protected void renderButton(int x, int y, int relativeButtonX, int relativeButtonY, int buttonWidth, int buttonHeight, int relativeMouseX, int relativeMouseY) {
@@ -53,21 +45,19 @@ public class AudioInputDeviceComponent extends ButtonComponent {
     }
 
     private void updateString(){
-        this.button.displayString = this.specifiers[this.option.value];
+        if (this.option.value == -1){
+            this.button.displayString = "No Microphone";
+        } else
+            this.button.displayString = this.specifiers[this.option.value];
     }
 
     public void resetValue() {
         this.option.set(this.option.getDefaultValue());
         this.updateString();
-        //this.option.onUpdate();
     }
 
     public void init(Minecraft mc) {
-        this.button.displayString = this.specifiers[this.option.value];
-    }
-
-    private void updateMicrophone(){
-        this.client.device.open(this.specifiers[this.option.value]);
+        updateString();
     }
 
     public boolean isDefault() {
