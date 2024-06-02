@@ -1,6 +1,7 @@
 package fiveavian.proxvc;
 
 import fiveavian.proxvc.api.ClientEvents;
+import fiveavian.proxvc.gui.AudioInputDeviceComponent;
 import fiveavian.proxvc.gui.GuiVCOptions;
 import fiveavian.proxvc.util.OptionStore;
 import fiveavian.proxvc.vc.AudioInputDevice;
@@ -13,12 +14,15 @@ import net.minecraft.client.gui.options.components.BooleanOptionComponent;
 import net.minecraft.client.gui.options.components.FloatOptionComponent;
 import net.minecraft.client.gui.options.components.KeyBindingComponent;
 import net.minecraft.client.gui.options.components.OptionsCategory;
+import net.minecraft.client.gui.options.data.OptionsPage;
 import net.minecraft.client.gui.options.data.OptionsPages;
 import net.minecraft.client.option.*;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.core.block.Block;
 import net.minecraft.core.entity.Entity;
 import net.minecraft.core.entity.player.EntityPlayer;
+import net.minecraft.core.item.ItemStack;
 import net.minecraft.core.net.packet.Packet1Login;
 import net.minecraft.core.util.phys.Vec3d;
 import org.lwjgl.input.Keyboard;
@@ -51,6 +55,7 @@ public class ProxVCClient implements ClientModInitializer {
     public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk, keyVCOptions};
     public FloatOption voiceChatVolume;
     public BooleanOption usePushToTalk;
+    public IntegerOption AudioInput;
     public Option<?>[] options;
     public File optionFile;
     public boolean isMuted = false;
@@ -75,22 +80,31 @@ public class ProxVCClient implements ClientModInitializer {
         this.client = client;
         voiceChatVolume = new FloatOption(client.gameSettings, "sound.voice_chat", 1.0f);
         usePushToTalk = new BooleanOption(client.gameSettings, "use_push_to_talk", false);
-        options = new Option[]{voiceChatVolume, usePushToTalk};
+        AudioInput = new IntegerOption(client.gameSettings, "micinput", 0);
+        options = new Option[]{voiceChatVolume, usePushToTalk, AudioInput};
 
         optionFile = new File(client.mcDataDir, "proxvc_client.properties");
         OptionStore.loadOptions(optionFile, options, keyBindings);
         OptionStore.saveOptions(optionFile, options, keyBindings);
-        OptionsPages.AUDIO.withComponent(
+        //Zep here, inserting the page in the settings instead of putting it into audio
+        OptionsPages.register(new OptionsPage("gui.options.page.audio.category.proxvc", new ItemStack(Block.jukebox))).withComponent(
                 new OptionsCategory("gui.options.page.audio.category.proxvc")
                         .withComponent(new FloatOptionComponent(voiceChatVolume))
                         .withComponent(new BooleanOptionComponent(usePushToTalk))
+                        .withComponent(new AudioInputDeviceComponent(this, AudioInput))
         );
+//        OptionsPages.AUDIO.withComponent(
+//                new OptionsCategory("gui.options.page.audio.category.proxvc")
+//                        .withComponent(new FloatOptionComponent(voiceChatVolume))
+//                        .withComponent(new BooleanOptionComponent(usePushToTalk))
+//        );
         OptionsPages.CONTROLS.withComponent(
                 new OptionsCategory("gui.options.page.controls.category.proxvc")
                         .withComponent(new KeyBindingComponent(keyMute))
                         .withComponent(new KeyBindingComponent(keyPushToTalk))
                         .withComponent(new KeyBindingComponent(keyVCOptions))
         );
+
 
         try {
             socket = new DatagramSocket();
