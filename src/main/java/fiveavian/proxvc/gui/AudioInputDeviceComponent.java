@@ -30,15 +30,15 @@ public class AudioInputDeviceComponent extends ButtonComponent {
     protected void buttonClicked(int mouseButton, int x, int y, int width, int height, int relativeMouseX, int relativeMouseY) {
         currentSelection++;
         //Reset if its beyond mic amount
-        if (currentSelection >= this.specifiers.length - 1 || currentSelection < -1){
-            currentSelection = -1;
-            this.option.set(this.option.getDefaultValue());
+        if (currentSelection >= this.specifiers.length - 1 || currentSelection < -1) {
+            resetValue();
         }
-        else{
+        else {
             this.option.set(this.specifiers[currentSelection]);
+            this.updateString();
+            this.client.device.open(option.value);
         }
-        this.updateString();
-        this.client.device.open(option.value);
+
     }
 
     protected void renderButton(int x, int y, int relativeButtonX, int relativeButtonY, int buttonWidth, int buttonHeight, int relativeMouseX, int relativeMouseY) {
@@ -50,21 +50,24 @@ public class AudioInputDeviceComponent extends ButtonComponent {
         this.button.drawButton(mc, x + relativeMouseX, y + relativeMouseY);
     }
 
-    private void updateString(){
+    private void updateString() {
             this.button.displayString = option.value;
     }
 
     public void resetValue() {
         this.option.set(this.option.getDefaultValue());
         this.currentSelection = -1;
-        this.client.device.open(option.value);
+        this.client.device.open(null);
         this.updateString();
     }
 
     public void init(Minecraft mc) {
-        if (this.option.value.equals(option.getDefaultValue())) {
-            this.currentSelection = Arrays.binarySearch(this.specifiers, this.option.value);
-        }
+        this.currentSelection = Arrays.stream(this.specifiers)
+                .filter(c -> c.equals(this.option.value))
+                .findFirst()
+                .map(c -> Arrays.asList(this.specifiers).indexOf(c))
+                .orElse(-1);
+
         this.updateString();
     }
 

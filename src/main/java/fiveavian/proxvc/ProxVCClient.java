@@ -13,15 +13,12 @@ import net.minecraft.client.gui.options.components.BooleanOptionComponent;
 import net.minecraft.client.gui.options.components.FloatOptionComponent;
 import net.minecraft.client.gui.options.components.KeyBindingComponent;
 import net.minecraft.client.gui.options.components.OptionsCategory;
-import net.minecraft.client.gui.options.data.OptionsPage;
 import net.minecraft.client.gui.options.data.OptionsPages;
 import net.minecraft.client.option.*;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.core.block.Block;
 import net.minecraft.core.entity.Entity;
 import net.minecraft.core.entity.player.EntityPlayer;
-import net.minecraft.core.item.ItemStack;
 import net.minecraft.core.net.packet.Packet1Login;
 import net.minecraft.core.util.phys.Vec3d;
 import org.lwjgl.input.Keyboard;
@@ -53,7 +50,7 @@ public class ProxVCClient implements ClientModInitializer {
     public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk};
     public FloatOption voiceChatVolume;
     public BooleanOption usePushToTalk;
-    public StringOption AudioInput;
+    public StringOption audioInput;
     public Option<?>[] options;
     public File optionFile;
     public boolean isMuted = false;
@@ -78,24 +75,21 @@ public class ProxVCClient implements ClientModInitializer {
         this.client = client;
         voiceChatVolume = new FloatOption(client.gameSettings, "sound.voice_chat", 1.0f);
         usePushToTalk = new BooleanOption(client.gameSettings, "use_push_to_talk", false);
-        AudioInput = new StringOption(client.gameSettings, "micinput", "No Microphone");
-        options = new Option[]{voiceChatVolume, usePushToTalk, AudioInput};
+        audioInput = new StringOption(client.gameSettings, "audio_input", "No Microphone");
+        options = new Option[]{voiceChatVolume, usePushToTalk, audioInput};
+
 
         optionFile = new File(client.mcDataDir, "config/proxvc_client.properties");
+        if (!optionFile.getParentFile().exists()) {optionFile.mkdirs();}
+
         OptionStore.loadOptions(optionFile, options, keyBindings);
         OptionStore.saveOptions(optionFile, options, keyBindings);
-        //Zep here, inserting the page in the settings instead of putting it into audio
-        OptionsPages.register(new OptionsPage("gui.options.page.audio.category.proxvc", new ItemStack(Block.jukebox))).withComponent(
+        OptionsPages.AUDIO.withComponent(
                 new OptionsCategory("gui.options.page.audio.category.proxvc")
                         .withComponent(new FloatOptionComponent(voiceChatVolume))
                         .withComponent(new BooleanOptionComponent(usePushToTalk))
-                        .withComponent(new AudioInputDeviceComponent(this, AudioInput))
+                        .withComponent(new AudioInputDeviceComponent(this, audioInput))
         );
-//        OptionsPages.AUDIO.withComponent(
-//                new OptionsCategory("gui.options.page.audio.category.proxvc")
-//                        .withComponent(new FloatOptionComponent(voiceChatVolume))
-//                        .withComponent(new BooleanOptionComponent(usePushToTalk))
-//        );
         OptionsPages.CONTROLS.withComponent(
                 new OptionsCategory("gui.options.page.controls.category.proxvc")
                         .withComponent(new KeyBindingComponent(keyMute))
@@ -116,6 +110,9 @@ public class ProxVCClient implements ClientModInitializer {
             System.out.println("Continuing without ProxVC.");
             ex.printStackTrace();
         }
+
+        //Check if a Microphone has previously been selected in settings, and update it
+        device.open(audioInput.value);
     }
 
     private void stop(Minecraft client) {
@@ -201,9 +198,6 @@ public class ProxVCClient implements ClientModInitializer {
     }
 
     private void login(Minecraft client, Packet1Login packet) {
-        //Check if a Microphone has previously been selected in settings, and update it
-        device.open(AudioInput.value);
-
         Socket socket = client.getSendQueue().netManager.networkSocket;
         serverAddress = socket.getRemoteSocketAddress();
     }
