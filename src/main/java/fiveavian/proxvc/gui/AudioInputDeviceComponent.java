@@ -1,38 +1,44 @@
 package fiveavian.proxvc.gui;
 
 import fiveavian.proxvc.ProxVCClient;
+import fiveavian.proxvc.vc.AudioInputDevice;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.options.components.ButtonComponent;
-import net.minecraft.client.option.IntegerOption;
-import fiveavian.proxvc.util.MicrophoneUtil;
+import net.minecraft.client.option.StringOption;
+
+import java.util.Arrays;
 
 public class AudioInputDeviceComponent extends ButtonComponent {
-    private final IntegerOption option;
+    private final StringOption option;
     private final GuiButton button;
+
+    private int currentSelection;
 
     private final ProxVCClient client;
     private final String[] specifiers;
 
-    //little mix of GuiVCOptions and IntegerOptionComponent
-    public AudioInputDeviceComponent(ProxVCClient client, IntegerOption option) {
+    //little mix of GuiVCOptions and StringOptionComponent
+    public AudioInputDeviceComponent(ProxVCClient client, StringOption option) {
         super("options." + option.name);
         this.client = client;
-        this.specifiers = MicrophoneUtil.getSpecifiers();
+        this.specifiers = AudioInputDevice.getSpecifiers();
         this.option = option;
-        this.button = new GuiButton(0, 0, 0, 150, 20, "No Microphone");
+        this.button = new GuiButton(0, 0, 0, 150, 20, option.value);
     }
 
     protected void buttonClicked(int mouseButton, int x, int y, int width, int height, int relativeMouseX, int relativeMouseY) {
+        currentSelection++;
         //Reset if its beyond mic amount
-        if (this.option.value >= specifiers.length - 1){
-            this.option.set(-1);
+        if (currentSelection >= this.specifiers.length - 1 || currentSelection < -1){
+            currentSelection = -1;
+            this.option.set(this.option.getDefaultValue());
         }
         else{
-            this.option.set(this.option.value + 1);
+            this.option.set(this.specifiers[currentSelection]);
         }
         this.updateString();
-        MicrophoneUtil.updateMicrophone(this.option.value, this.client);
+        this.client.device.open(option.value);
     }
 
     protected void renderButton(int x, int y, int relativeButtonX, int relativeButtonY, int buttonWidth, int buttonHeight, int relativeMouseX, int relativeMouseY) {
@@ -45,19 +51,21 @@ public class AudioInputDeviceComponent extends ButtonComponent {
     }
 
     private void updateString(){
-        if (this.option.value == -1){
-            this.button.displayString = "No Microphone";
-        } else
-            this.button.displayString = this.specifiers[this.option.value];
+            this.button.displayString = option.value;
     }
 
     public void resetValue() {
         this.option.set(this.option.getDefaultValue());
+        this.currentSelection = -1;
+        this.client.device.open(option.value);
         this.updateString();
     }
 
     public void init(Minecraft mc) {
-        updateString();
+        if (this.option.value.equals(option.getDefaultValue())) {
+            this.currentSelection = Arrays.binarySearch(this.specifiers, this.option.value);
+        }
+        this.updateString();
     }
 
     public boolean isDefault() {

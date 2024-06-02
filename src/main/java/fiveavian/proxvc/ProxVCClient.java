@@ -2,7 +2,6 @@ package fiveavian.proxvc;
 
 import fiveavian.proxvc.api.ClientEvents;
 import fiveavian.proxvc.gui.AudioInputDeviceComponent;
-import fiveavian.proxvc.util.MicrophoneUtil;
 import fiveavian.proxvc.util.OptionStore;
 import fiveavian.proxvc.vc.AudioInputDevice;
 import fiveavian.proxvc.vc.StreamingAudioSource;
@@ -54,7 +53,7 @@ public class ProxVCClient implements ClientModInitializer {
     public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk};
     public FloatOption voiceChatVolume;
     public BooleanOption usePushToTalk;
-    public IntegerOption AudioInput;
+    public StringOption AudioInput;
     public Option<?>[] options;
     public File optionFile;
     public boolean isMuted = false;
@@ -79,10 +78,10 @@ public class ProxVCClient implements ClientModInitializer {
         this.client = client;
         voiceChatVolume = new FloatOption(client.gameSettings, "sound.voice_chat", 1.0f);
         usePushToTalk = new BooleanOption(client.gameSettings, "use_push_to_talk", false);
-        AudioInput = new IntegerOption(client.gameSettings, "micinput", 0);
+        AudioInput = new StringOption(client.gameSettings, "micinput", "No Microphone");
         options = new Option[]{voiceChatVolume, usePushToTalk, AudioInput};
 
-        optionFile = new File(client.mcDataDir, "proxvc_client.properties");
+        optionFile = new File(client.mcDataDir, "config/proxvc_client.properties");
         OptionStore.loadOptions(optionFile, options, keyBindings);
         OptionStore.saveOptions(optionFile, options, keyBindings);
         //Zep here, inserting the page in the settings instead of putting it into audio
@@ -203,7 +202,7 @@ public class ProxVCClient implements ClientModInitializer {
 
     private void login(Minecraft client, Packet1Login packet) {
         //Check if a Microphone has previously been selected in settings, and update it
-        MicrophoneUtil.updateMicrophone(AudioInput.value, this);
+        device.open(AudioInput.value);
 
         Socket socket = client.getSendQueue().netManager.networkSocket;
         serverAddress = socket.getRemoteSocketAddress();
