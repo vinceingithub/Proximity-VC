@@ -16,7 +16,7 @@ public class AudioInputDeviceComponent extends ButtonComponent {
     private int currentSelection;
 
     private final ProxVCClient client;
-    private final String[] specifiers;
+    private String[] specifiers;
 
     //little mix of GuiVCOptions and StringOptionComponent
     public AudioInputDeviceComponent(ProxVCClient client, StringOption option) {
@@ -59,9 +59,15 @@ public class AudioInputDeviceComponent extends ButtonComponent {
         this.currentSelection = -1;
         this.client.device.open(null);
         this.updateString();
+
+        //Also check for new microphones when reloading
+        this.specifiers = AudioInputDevice.getSpecifiers();
     }
 
     public void init(Minecraft mc) {
+
+        this.specifiers = AudioInputDevice.getSpecifiers();
+
         this.currentSelection = Arrays.stream(this.specifiers)
                 .filter(c -> c.equals(this.option.value))
                 .findFirst()
