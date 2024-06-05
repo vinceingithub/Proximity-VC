@@ -44,7 +44,7 @@ public class AudioInputDevice implements AutoCloseable {
         return samples;
     }
 
-    public static synchronized String[] getSpecifiers(){
+    public static String[] getSpecifiers(){
         String result = null;
         try {
             result = ALC10.alcGetString(null, ALC11.ALC_CAPTURE_DEVICE_SPECIFIER);

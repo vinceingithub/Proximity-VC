@@ -50,7 +50,7 @@ public class ProxVCClient implements ClientModInitializer {
     public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk};
     public FloatOption voiceChatVolume;
     public BooleanOption usePushToTalk;
-    public StringOption audioInput;
+    public StringOption selectedInputDevice;
     public Option<?>[] options;
     public File optionFile;
     public boolean isMuted = false;
@@ -75,8 +75,8 @@ public class ProxVCClient implements ClientModInitializer {
         this.client = client;
         voiceChatVolume = new FloatOption(client.gameSettings, "sound.voice_chat", 1.0f);
         usePushToTalk = new BooleanOption(client.gameSettings, "use_push_to_talk", false);
-        audioInput = new StringOption(client.gameSettings, "audio_input", "No Microphone");
-        options = new Option[]{voiceChatVolume, usePushToTalk, audioInput};
+        selectedInputDevice = new StringOption(client.gameSettings, "audio_input", "No Microphone");
+        options = new Option[]{voiceChatVolume, usePushToTalk, selectedInputDevice};
 
 
         optionFile = new File(client.mcDataDir, "config/proxvc_client.properties");
@@ -88,7 +88,7 @@ public class ProxVCClient implements ClientModInitializer {
                 new OptionsCategory("gui.options.page.audio.category.proxvc")
                         .withComponent(new FloatOptionComponent(voiceChatVolume))
                         .withComponent(new BooleanOptionComponent(usePushToTalk))
-                        .withComponent(new AudioInputDeviceComponent(this, audioInput))
+                        .withComponent(new AudioInputDeviceComponent(this, selectedInputDevice))
         );
         OptionsPages.CONTROLS.withComponent(
                 new OptionsCategory("gui.options.page.controls.category.proxvc")
@@ -112,7 +112,7 @@ public class ProxVCClient implements ClientModInitializer {
         }
 
         //Check if a Microphone has previously been selected in settings, and update it
-        device.open(audioInput.value);
+        device.open(selectedInputDevice.value);
     }
 
     private void stop(Minecraft client) {

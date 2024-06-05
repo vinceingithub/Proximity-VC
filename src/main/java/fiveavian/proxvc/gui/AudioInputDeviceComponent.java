@@ -30,7 +30,7 @@ public class AudioInputDeviceComponent extends ButtonComponent {
     protected void buttonClicked(int mouseButton, int x, int y, int width, int height, int relativeMouseX, int relativeMouseY) {
         currentSelection++;
         //Reset if its beyond mic amount
-        if (currentSelection >= this.specifiers.length - 1 || currentSelection < -1) {
+        if (currentSelection >= this.specifiers.length) {
             resetValue();
         }
         else {
@@ -65,9 +65,6 @@ public class AudioInputDeviceComponent extends ButtonComponent {
     }
 
     public void init(Minecraft mc) {
-
-        this.specifiers = AudioInputDevice.getSpecifiers();
-
         this.currentSelection = Arrays.stream(this.specifiers)
                 .filter(c -> c.equals(this.option.value))
                 .findFirst()
