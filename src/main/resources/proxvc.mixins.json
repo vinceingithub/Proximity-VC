@@ -6,7 +6,8 @@
   "client": [
     "client.MinecraftMixin",
     "client.NetClientHandlerMixin",
-    "client.WorldRendererMixin"
+    "client.WorldRendererMixin",
+    "client.SoundManagerMixin"
   ],
   "server": [
     "server.MinecraftServerMixin"
