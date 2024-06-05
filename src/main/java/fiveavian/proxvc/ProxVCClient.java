@@ -1,7 +1,7 @@
 package fiveavian.proxvc;
 
 import fiveavian.proxvc.api.ClientEvents;
-import fiveavian.proxvc.gui.GuiVCOptions;
+import fiveavian.proxvc.gui.AudioInputDeviceComponent;
 import fiveavian.proxvc.util.OptionStore;
 import fiveavian.proxvc.vc.AudioInputDevice;
 import fiveavian.proxvc.vc.StreamingAudioSource;
@@ -46,16 +46,16 @@ public class ProxVCClient implements ClientModInitializer {
     private Thread outputThread;
 
     public final KeyBinding keyMute = new KeyBinding("key.mute").bindKeyboard(Keyboard.KEY_M);
-    public final KeyBinding keyPushToTalk = new KeyBinding("key.push_to_talk").bindMouse(4);
-    public final KeyBinding keyVCOptions = new KeyBinding("key.vc_options").bindKeyboard(Keyboard.KEY_V);
-    public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk, keyVCOptions};
+    public final KeyBinding keyPushToTalk = new KeyBinding("key.push_to_talk").bindKeyboard(Keyboard.KEY_V);
+    public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk};
     public FloatOption voiceChatVolume;
     public BooleanOption usePushToTalk;
+    public StringOption selectedInputDevice;
     public Option<?>[] options;
     public File optionFile;
     public boolean isMuted = false;
     private boolean isMutePressed = false;
-    private boolean isVCOptionsPressed = false;
+
 
     public boolean isDisconnected() {
         return !client.isMultiplayerWorld() || serverAddress == null;
@@ -75,22 +75,27 @@ public class ProxVCClient implements ClientModInitializer {
         this.client = client;
         voiceChatVolume = new FloatOption(client.gameSettings, "sound.voice_chat", 1.0f);
         usePushToTalk = new BooleanOption(client.gameSettings, "use_push_to_talk", false);
-        options = new Option[]{voiceChatVolume, usePushToTalk};
+        selectedInputDevice = new StringOption(client.gameSettings, "audio_input", "No Microphone");
+        options = new Option[]{voiceChatVolume, usePushToTalk, selectedInputDevice};
 
-        optionFile = new File(client.mcDataDir, "proxvc_client.properties");
+
+        optionFile = new File(client.mcDataDir, "config/proxvc_client.properties");
+        if (!optionFile.getParentFile().exists()) {optionFile.mkdirs();}
+
         OptionStore.loadOptions(optionFile, options, keyBindings);
         OptionStore.saveOptions(optionFile, options, keyBindings);
         OptionsPages.AUDIO.withComponent(
                 new OptionsCategory("gui.options.page.audio.category.proxvc")
                         .withComponent(new FloatOptionComponent(voiceChatVolume))
                         .withComponent(new BooleanOptionComponent(usePushToTalk))
+                        .withComponent(new AudioInputDeviceComponent(this, selectedInputDevice))
         );
         OptionsPages.CONTROLS.withComponent(
                 new OptionsCategory("gui.options.page.controls.category.proxvc")
                         .withComponent(new KeyBindingComponent(keyMute))
                         .withComponent(new KeyBindingComponent(keyPushToTalk))
-                        .withComponent(new KeyBindingComponent(keyVCOptions))
         );
+
 
         try {
             socket = new DatagramSocket();
@@ -105,6 +110,9 @@ public class ProxVCClient implements ClientModInitializer {
             System.out.println("Continuing without ProxVC.");
             ex.printStackTrace();
         }
+
+        //Check if a Microphone has previously been selected in settings, and update it
+        device.open(selectedInputDevice.value);
     }
 
     private void stop(Minecraft client) {
@@ -154,12 +162,6 @@ public class ProxVCClient implements ClientModInitializer {
                 isMuted = !isMuted;
             }
 
-            if (keyVCOptions.isPressEvent(InputDevice.KEYBOARD))
-                isVCOptionsPressed = true;
-            if (keyVCOptions.isReleaseEvent(InputDevice.KEYBOARD) && isVCOptionsPressed) {
-                isVCOptionsPressed = false;
-                client.displayGuiScreen(new GuiVCOptions(this));
-            }
         }
 
         for (Entity entity : client.theWorld.loadedEntityList) {

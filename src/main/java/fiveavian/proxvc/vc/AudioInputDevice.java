@@ -1,10 +1,7 @@
 package fiveavian.proxvc.vc;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.openal.AL10;
-import org.lwjgl.openal.ALC10;
-import org.lwjgl.openal.ALC11;
-import org.lwjgl.openal.ALCdevice;
+import org.lwjgl.openal.*;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -45,6 +42,15 @@ public class AudioInputDevice implements AutoCloseable {
         samples.rewind();
         ALC11.alcCaptureSamples(device, samples, VCProtocol.SAMPLE_COUNT);
         return samples;
+    }
+
+    public static String[] getSpecifiers(){
+        String result = null;
+        try {
+            result = ALC10.alcGetString(null, ALC11.ALC_CAPTURE_DEVICE_SPECIFIER);
+        } catch (OpenALException ignored) {
+        }
+        return result == null ? new String[0] : result.split("\0");
     }
 
     @Override
