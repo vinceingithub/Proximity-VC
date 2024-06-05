@@ -13,19 +13,22 @@ import java.util.function.Consumer;
 public class MinecraftMixin {
     @Inject(method = "startGame", at = @At("TAIL"))
     public void startGame(CallbackInfo ci) {
-        for (Consumer<Minecraft> listener : ClientEvents.START)
+        for (Consumer<Minecraft> listener : ClientEvents.START) {
             listener.accept((Minecraft) (Object) this);
+        }
     }
 
     @Inject(method = "shutdownMinecraftApplet", at = @At("HEAD"))
     public void shutdownMinecraftApplet(CallbackInfo ci) {
-        for (Consumer<Minecraft> listener : ClientEvents.STOP)
+        for (Consumer<Minecraft> listener : ClientEvents.STOP) {
             listener.accept((Minecraft) (Object) this);
+        }
     }
 
     @Inject(method = "runTick", at = @At("TAIL"))
     public void runTick(CallbackInfo ci) {
-        for (Consumer<Minecraft> listener : ClientEvents.TICK)
+        for (Consumer<Minecraft> listener : ClientEvents.TICK) {
             listener.accept((Minecraft) (Object) this);
+        }
     }
 }

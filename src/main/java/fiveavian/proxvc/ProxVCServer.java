@@ -39,10 +39,12 @@ public class ProxVCServer implements DedicatedServerModInitializer {
 
     private void stop(MinecraftServer server) {
         try {
-            if (socket != null)
+            if (socket != null) {
                 socket.close();
-            if (relayThread != null)
+            }
+            if (relayThread != null) {
                 relayThread.join();
+            }
         } catch (InterruptedException ex) {
             System.out.println("Failed to stop the ProxVC server because of an exception.");
             ex.printStackTrace();

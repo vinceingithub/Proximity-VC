@@ -43,12 +43,14 @@ public class VCOutputClient implements Runnable {
 
     private void receiveNextPacket() throws Exception {
         packet.receive();
-        if (vcClient.isDisconnected())
+        if (vcClient.isDisconnected()) {
             return;
+        }
         int entityId = packet.buffer.getInt();
         StreamingAudioSource source = sources.get(entityId);
-        if (source == null)
+        if (source == null) {
             return;
+        }
         samples.limit(VCProtocol.BUFFER_SIZE + 16); // add room for AES padding
         BufferAES.decrypt(AES.clientKeyChain, packet.buffer, samples);
         samples.limit(VCProtocol.BUFFER_SIZE);

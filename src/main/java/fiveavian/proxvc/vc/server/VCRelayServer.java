@@ -48,9 +48,9 @@ public class VCRelayServer implements Runnable {
         SocketAddress address = packet.packet.getSocketAddress();
         int entityId = packet.buffer.getInt();
         EntityPlayerMP player = getPlayerById(entityId);
-        if (player == null)
+        if (player == null) {
             return;
-
+        }
         samples.rewind();
         samples.limit(VCProtocol.BUFFER_SIZE + 16); // add room for AES padding
         BufferAES.decrypt(AES.keyChain.get(player.username), packet.buffer, samples);
@@ -58,14 +58,17 @@ public class VCRelayServer implements Runnable {
 
         connections.put(packet.packet.getSocketAddress(), player);
         connections.entrySet().removeIf(this::isConnectionOffline);
-        for (SocketAddress key : connections.keySet())
+        for (SocketAddress key : connections.keySet()) {
             shareSamples(address, player, key, connections.get(key));
+        }
     }
 
     private EntityPlayerMP getPlayerById(int id) {
-        for (EntityPlayerMP player : server.playerList.playerEntities)
-            if (player.id == id)
+        for (EntityPlayerMP player : server.playerList.playerEntities) {
+            if (player.id == id) {
                 return player;
+            }
+        }
         return null;
     }
 
@@ -74,8 +77,9 @@ public class VCRelayServer implements Runnable {
     }
 
     private void shareSamples(SocketAddress sourceAddress, EntityPlayerMP sourcePlayer, SocketAddress address, EntityPlayerMP player) throws Exception {
-        if (sourceAddress.equals(address) || sourcePlayer.id == player.id || sourcePlayer.distanceTo(player) > 32f)
+        if (sourceAddress.equals(address) || sourcePlayer.id == player.id || sourcePlayer.distanceTo(player) > 32f) {
             return;
+        }
         samples.rewind();
         packet.buffer.position(4);
         BufferAES.encrypt(AES.keyChain.get(player.username), samples, packet.buffer);

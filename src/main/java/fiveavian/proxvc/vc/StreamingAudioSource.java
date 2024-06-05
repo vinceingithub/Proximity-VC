@@ -25,15 +25,18 @@ public class StreamingAudioSource implements AutoCloseable {
     public boolean queueSamples(ByteBuffer samples) {
         int numBuffersToUnqueue = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
         numBuffersAvailable += numBuffersToUnqueue;
-        for (int i = 0; i < numBuffersToUnqueue; i++)
+        for (int i = 0; i < numBuffersToUnqueue; i++) {
             AL10.alSourceUnqueueBuffers(source);
-        if (numBuffersAvailable == 0)
+        }
+        if (numBuffersAvailable == 0) {
             return false;
+        }
         AL10.alBufferData(buffers.get(bufferIndex), AL10.AL_FORMAT_MONO16, samples, VCProtocol.SAMPLE_RATE);
         AL10.alSourceQueueBuffers(source, buffers.get(bufferIndex));
         int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
-        if (state != AL10.AL_PLAYING)
+        if (state != AL10.AL_PLAYING) {
             AL10.alSourcePlay(source);
+        }
         numBuffersAvailable -= 1;
         bufferIndex += 1;
         bufferIndex %= NUM_BUFFERS;

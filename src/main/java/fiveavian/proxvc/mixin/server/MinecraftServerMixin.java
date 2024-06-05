@@ -14,13 +14,15 @@ import java.util.function.Consumer;
 public class MinecraftServerMixin {
     @Inject(method = "startServer", at = @At("TAIL"))
     public void startServer(CallbackInfoReturnable<Boolean> cir) {
-        for (Consumer<MinecraftServer> listener : ServerEvents.START)
+        for (Consumer<MinecraftServer> listener : ServerEvents.START) {
             listener.accept((MinecraftServer) (Object) this);
+        }
     }
 
     @Inject(method = "stopServer", at = @At("HEAD"))
     public void stopServer(CallbackInfo ci) {
-        for (Consumer<MinecraftServer> listener : ServerEvents.STOP)
+        for (Consumer<MinecraftServer> listener : ServerEvents.STOP) {
             listener.accept((MinecraftServer) (Object) this);
+        }
     }
 }

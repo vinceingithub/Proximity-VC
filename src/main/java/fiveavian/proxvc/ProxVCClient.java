@@ -8,6 +8,7 @@ import fiveavian.proxvc.vc.StreamingAudioSource;
 import fiveavian.proxvc.vc.client.VCInputClient;
 import fiveavian.proxvc.vc.client.VCOutputClient;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.options.components.BooleanOptionComponent;
 import net.minecraft.client.gui.options.components.FloatOptionComponent;
@@ -26,11 +27,11 @@ import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
 import org.lwjgl.opengl.GL11;
 
-import java.io.File;
 import java.net.DatagramSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -52,10 +53,9 @@ public class ProxVCClient implements ClientModInitializer {
     public BooleanOption usePushToTalk;
     public StringOption selectedInputDevice;
     public Option<?>[] options;
-    public File optionFile;
+    public Path optionFilePath;
     public boolean isMuted = false;
     private boolean isMutePressed = false;
-
 
     public boolean isDisconnected() {
         return !client.isMultiplayerWorld() || serverAddress == null;
@@ -75,28 +75,12 @@ public class ProxVCClient implements ClientModInitializer {
         this.client = client;
         voiceChatVolume = new FloatOption(client.gameSettings, "sound.voice_chat", 1.0f);
         usePushToTalk = new BooleanOption(client.gameSettings, "use_push_to_talk", false);
-        selectedInputDevice = new StringOption(client.gameSettings, "audio_input", "No Microphone");
+        selectedInputDevice = new StringOption(client.gameSettings, "selected_input_device", null);
         options = new Option[]{voiceChatVolume, usePushToTalk, selectedInputDevice};
+        optionFilePath = FabricLoader.getInstance().getConfigDir().resolve("proxvc_client.properties");
 
-
-        optionFile = new File(client.mcDataDir, "config/proxvc_client.properties");
-        if (!optionFile.getParentFile().exists()) {optionFile.mkdirs();}
-
-        OptionStore.loadOptions(optionFile, options, keyBindings);
-        OptionStore.saveOptions(optionFile, options, keyBindings);
-        OptionsPages.AUDIO.withComponent(
-                new OptionsCategory("gui.options.page.audio.category.proxvc")
-                        .withComponent(new FloatOptionComponent(voiceChatVolume))
-                        .withComponent(new BooleanOptionComponent(usePushToTalk))
-                        .withComponent(new AudioInputDeviceComponent(this, selectedInputDevice))
-        );
-        OptionsPages.CONTROLS.withComponent(
-                new OptionsCategory("gui.options.page.controls.category.proxvc")
-                        .withComponent(new KeyBindingComponent(keyMute))
-                        .withComponent(new KeyBindingComponent(keyPushToTalk))
-        );
-
-
+        OptionStore.loadOptions(optionFilePath, options, keyBindings);
+        OptionStore.saveOptions(optionFilePath, options, keyBindings);
         try {
             socket = new DatagramSocket();
             device = new AudioInputDevice();
@@ -105,28 +89,36 @@ public class ProxVCClient implements ClientModInitializer {
             outputThread = new Thread(new VCOutputClient(this));
             inputThread.start();
             outputThread.start();
+
+            OptionsPages.AUDIO.withComponent(new OptionsCategory("gui.options.page.audio.category.proxvc")
+                    .withComponent(new FloatOptionComponent(voiceChatVolume))
+                    .withComponent(new BooleanOptionComponent(usePushToTalk))
+                    .withComponent(new AudioInputDeviceComponent(device, selectedInputDevice)));
+            OptionsPages.CONTROLS.withComponent(new OptionsCategory("gui.options.page.controls.category.proxvc")
+                    .withComponent(new KeyBindingComponent(keyMute))
+                    .withComponent(new KeyBindingComponent(keyPushToTalk)));
         } catch (SocketException ex) {
             System.out.println("Failed to start the ProxVC client because of an exception.");
             System.out.println("Continuing without ProxVC.");
             ex.printStackTrace();
         }
-
-        //Check if a Microphone has previously been selected in settings, and update it
-        device.open(selectedInputDevice.value);
     }
 
     private void stop(Minecraft client) {
-        OptionStore.saveOptions(optionFile, options, keyBindings);
-
+        OptionStore.saveOptions(optionFilePath, options, keyBindings);
         try {
-            if (socket != null)
+            if (socket != null) {
                 socket.close();
-            if (inputThread != null)
+            }
+            if (inputThread != null) {
                 inputThread.join();
-            if (outputThread != null)
+            }
+            if (outputThread != null) {
                 outputThread.join();
-            if (device != null)
+            }
+            if (device != null) {
                 device.close();
+            }
         } catch (InterruptedException ex) {
             System.out.println("Failed to stop the ProxVC client because of an exception.");
             ex.printStackTrace();
@@ -161,13 +153,13 @@ public class ProxVCClient implements ClientModInitializer {
                 isMutePressed = false;
                 isMuted = !isMuted;
             }
-
         }
 
         for (Entity entity : client.theWorld.loadedEntityList) {
             StreamingAudioSource source = sources.get(entity.id);
-            if (source == null)
+            if (source == null) {
                 continue;
+            }
             Vec3d look = entity.getLookAngle();
             AL10.alDistanceModel(AL11.AL_LINEAR_DISTANCE);
             AL10.alSourcef(source.source, AL10.AL_MAX_DISTANCE, 32f);
@@ -180,17 +172,19 @@ public class ProxVCClient implements ClientModInitializer {
     }
 
     private void render(Minecraft client, WorldRenderer renderer) {
-        if (isDisconnected() || !client.gameSettings.immersiveMode.drawOverlays())
+        if (isDisconnected() || !client.gameSettings.immersiveMode.drawOverlays()) {
             return;
+        }
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, client.renderEngine.getTexture("/proxvc.png"));
         GL11.glColor4d(1.0, 1.0, 1.0, 1.0);
         double u = 0.0;
-        if (isMuted)
+        if (isMuted) {
             u = 0.25;
-        else if (device.isClosed())
+        } else if (device.isClosed()) {
             u = 0.5;
-        else if (usePushToTalk.value && !keyPushToTalk.isPressed())
+        } else if (usePushToTalk.value && !keyPushToTalk.isPressed()) {
             u = 0.75;
+        }
         Tessellator.instance.startDrawingQuads();
         Tessellator.instance.setColorRGBA_F(1f, 1f, 1f, 0.5f);
         Tessellator.instance.drawRectangleWithUV(4, client.resolution.scaledHeight - 24 - 4, 24, 24, u, 0.0, 0.25, 1.0);
@@ -204,8 +198,9 @@ public class ProxVCClient implements ClientModInitializer {
 
     private void disconnect(Minecraft client) {
         serverAddress = null;
-        for (StreamingAudioSource source : sources.values())
+        for (StreamingAudioSource source : sources.values()) {
             source.close();
+        }
         sources.clear();
     }
 }

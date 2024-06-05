@@ -53,15 +53,17 @@ public class VCInputClient implements Runnable {
     }
 
     private void sendNextPacket() throws Exception {
-        if (sources.isEmpty())
+        if (sources.isEmpty()) {
             return;
+        }
         ByteBuffer samples = device.pollSamples();
         packet.buffer.rewind();
         packet.buffer.putInt(client.thePlayer.id);
         if (vcClient.isMuted || (vcClient.usePushToTalk.value && !vcClient.keyPushToTalk.isPressed()) || samples == null) {
             ticksUntilNoopPacket -= 1;
-            if (ticksUntilNoopPacket > 0)
+            if (ticksUntilNoopPacket > 0) {
                 return;
+            }
             ticksUntilNoopPacket = TICKS_UNTIL_NOOP_PACKET;
             samples = EMPTY_BUFFER;
         } else {

@@ -13,6 +13,16 @@ public class AudioInputDevice implements AutoCloseable {
     private final IntBuffer ints = BufferUtils.createIntBuffer(1);
     private ALCdevice device = null;
 
+    public static String[] getSpecifiers() {
+        String result = null;
+        try {
+            result = ALC10.alcGetString(null, ALC11.ALC_CAPTURE_DEVICE_SPECIFIER);
+        } catch (OpenALException ex) {
+            ex.printStackTrace();
+        }
+        return result == null ? new String[0] : result.split("\0");
+    }
+
     public synchronized void open(String deviceName) {
         close();
         if (deviceName == null) {
@@ -33,24 +43,17 @@ public class AudioInputDevice implements AutoCloseable {
     }
 
     public synchronized ByteBuffer pollSamples() {
-        if (isClosed())
+        if (isClosed()) {
             return null;
+        }
         ints.rewind();
         ALC10.alcGetInteger(device, ALC11.ALC_CAPTURE_SAMPLES, ints);
-        if (ints.get(0) < VCProtocol.SAMPLE_COUNT)
+        if (ints.get(0) < VCProtocol.SAMPLE_COUNT) {
             return null;
+        }
         samples.rewind();
         ALC11.alcCaptureSamples(device, samples, VCProtocol.SAMPLE_COUNT);
         return samples;
-    }
-
-    public static String[] getSpecifiers(){
-        String result = null;
-        try {
-            result = ALC10.alcGetString(null, ALC11.ALC_CAPTURE_DEVICE_SPECIFIER);
-        } catch (OpenALException ignored) {
-        }
-        return result == null ? new String[0] : result.split("\0");
     }
 
     @Override

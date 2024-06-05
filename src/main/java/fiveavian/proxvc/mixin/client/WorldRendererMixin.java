@@ -18,7 +18,8 @@ public class WorldRendererMixin {
 
     @Inject(method = "updateCameraAndRender", at = @At("TAIL"))
     public void updateCameraAndRender(float partialTick, CallbackInfo ci) {
-        for (BiConsumer<Minecraft, WorldRenderer> listener : ClientEvents.RENDER)
+        for (BiConsumer<Minecraft, WorldRenderer> listener : ClientEvents.RENDER) {
             listener.accept(mc, (WorldRenderer) (Object) this);
+        }
     }
 }

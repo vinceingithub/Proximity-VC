@@ -25,20 +25,24 @@ public class NetClientHandlerMixin {
 
     @Inject(method = "handleLogin", at = @At("TAIL"))
     public void handleLogin(Packet1Login packet, CallbackInfo ci) {
-        for (BiConsumer<Minecraft, Packet1Login> listener : ClientEvents.LOGIN)
+        for (BiConsumer<Minecraft, Packet1Login> listener : ClientEvents.LOGIN) {
             listener.accept(mc, packet);
+        }
     }
 
     @Inject(method = "handleKickDisconnect", at = @At("HEAD"))
     public void handleKickDisconnect(Packet255KickDisconnect packet, CallbackInfo ci) {
-        for (Consumer<Minecraft> listener : ClientEvents.DISCONNECT)
+        for (Consumer<Minecraft> listener : ClientEvents.DISCONNECT) {
             listener.accept(mc);
+        }
     }
 
     @Inject(method = "handleErrorMessage", at = @At("HEAD"))
     public void handleErrorMessage(String s, Object[] errorLines, CallbackInfo ci) {
-        if (!disconnected)
-            for (Consumer<Minecraft> listener : ClientEvents.DISCONNECT)
+        if (!disconnected) {
+            for (Consumer<Minecraft> listener : ClientEvents.DISCONNECT) {
                 listener.accept(mc);
+            }
+        }
     }
 }
