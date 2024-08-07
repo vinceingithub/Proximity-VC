@@ -1,7 +1,7 @@
 package fiveavian.proxvc;
 
 import fiveavian.proxvc.api.ClientEvents;
-import fiveavian.proxvc.gui.AudioInputDeviceComponent;
+import fiveavian.proxvc.gui.MicrophoneListComponent;
 import fiveavian.proxvc.util.OptionStore;
 import fiveavian.proxvc.vc.AudioInputDevice;
 import fiveavian.proxvc.vc.StreamingAudioSource;
@@ -10,14 +10,13 @@ import fiveavian.proxvc.vc.client.VCOutputClient;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.options.components.BooleanOptionComponent;
-import net.minecraft.client.gui.options.components.FloatOptionComponent;
-import net.minecraft.client.gui.options.components.KeyBindingComponent;
-import net.minecraft.client.gui.options.components.OptionsCategory;
+import net.minecraft.client.gui.options.components.*;
+import net.minecraft.client.gui.options.data.OptionsPage;
 import net.minecraft.client.gui.options.data.OptionsPages;
 import net.minecraft.client.option.*;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.core.block.Block;
 import net.minecraft.core.entity.Entity;
 import net.minecraft.core.entity.player.EntityPlayer;
 import net.minecraft.core.net.packet.Packet1Login;
@@ -90,13 +89,19 @@ public class ProxVCClient implements ClientModInitializer {
             inputThread.start();
             outputThread.start();
 
-            OptionsPages.AUDIO.withComponent(new OptionsCategory("gui.options.page.audio.category.proxvc")
+            OptionsCategory generalCategory = new OptionsCategory("gui.options.page.proxvc.category.general")
                     .withComponent(new FloatOptionComponent(voiceChatVolume))
-                    .withComponent(new BooleanOptionComponent(usePushToTalk))
-                    .withComponent(new AudioInputDeviceComponent(device, selectedInputDevice)));
-            OptionsPages.CONTROLS.withComponent(new OptionsCategory("gui.options.page.controls.category.proxvc")
+                    .withComponent(new BooleanOptionComponent(usePushToTalk));
+            OptionsCategory devicesCategory = new OptionsCategory("gui.options.page.proxvc.category.devices")
+                    .withComponent(new MicrophoneListComponent(device, selectedInputDevice));
+            OptionsCategory controlsCategory = new OptionsCategory("gui.options.page.proxvc.category.controls")
                     .withComponent(new KeyBindingComponent(keyMute))
-                    .withComponent(new KeyBindingComponent(keyPushToTalk)));
+                    .withComponent(new KeyBindingComponent(keyPushToTalk));
+            OptionsPages.register(new OptionsPage("gui.options.page.proxvc.title", Block.noteblock.getDefaultStack()))
+                    .withComponent(generalCategory)
+                    .withComponent(devicesCategory)
+                    .withComponent(controlsCategory);
+            device.open(selectedInputDevice.value);
         } catch (SocketException ex) {
             System.out.println("Failed to start the ProxVC client because of an exception.");
             System.out.println("Continuing without ProxVC.");
