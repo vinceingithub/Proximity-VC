@@ -13,8 +13,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.options.components.*;
 import net.minecraft.client.gui.options.data.OptionsPage;
 import net.minecraft.client.gui.options.data.OptionsPages;
+import net.minecraft.client.input.InputDevice;
 import net.minecraft.client.option.*;
-import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.tessellator.Tessellator;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.core.block.Block;
 import net.minecraft.core.entity.Entity;
@@ -45,8 +46,8 @@ public class ProxVCClient implements ClientModInitializer {
     private Thread inputThread;
     private Thread outputThread;
 
-    public final KeyBinding keyMute = new KeyBinding("key.mute").bindKeyboard(Keyboard.KEY_M);
-    public final KeyBinding keyPushToTalk = new KeyBinding("key.push_to_talk").bindKeyboard(Keyboard.KEY_V);
+    public final KeyBinding keyMute = new KeyBinding("key.mute").setDefault(InputDevice.keyboard, Keyboard.KEY_M);
+    public final KeyBinding keyPushToTalk = new KeyBinding("key.push_to_talk").setDefault(InputDevice.keyboard, Keyboard.KEY_V);
     public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk};
     public FloatOption voiceChatVolume;
     public BooleanOption usePushToTalk;
@@ -77,7 +78,6 @@ public class ProxVCClient implements ClientModInitializer {
         selectedInputDevice = new StringOption(client.gameSettings, "selected_input_device", null);
         options = new Option[]{voiceChatVolume, usePushToTalk, selectedInputDevice};
         optionFilePath = FabricLoader.getInstance().getConfigDir().resolve("proxvc_client.properties");
-
         OptionStore.loadOptions(optionFilePath, options, keyBindings);
         OptionStore.saveOptions(optionFilePath, options, keyBindings);
         try {
@@ -110,7 +110,8 @@ public class ProxVCClient implements ClientModInitializer {
     }
 
     private void stop(Minecraft client) {
-        OptionStore.saveOptions(optionFilePath, options, keyBindings);
+        if (optionFilePath != null)
+            OptionStore.saveOptions(optionFilePath, options, keyBindings);
         try {
             if (socket != null) {
                 socket.close();
@@ -152,9 +153,9 @@ public class ProxVCClient implements ClientModInitializer {
         }
 
         if (client.currentScreen == null) {
-            if (keyMute.isPressEvent(InputDevice.KEYBOARD))
+            if (keyMute.isPressEvent(InputDevice.keyboard))
                 isMutePressed = true;
-            if (keyMute.isReleaseEvent(InputDevice.KEYBOARD) && isMutePressed) {
+            if (keyMute.isReleaseEvent(InputDevice.keyboard) && isMutePressed) {
                 isMutePressed = false;
                 isMuted = !isMuted;
             }

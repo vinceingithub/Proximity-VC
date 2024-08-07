@@ -5,7 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.options.components.OptionsComponent;
 import net.minecraft.client.option.StringOption;
 import net.minecraft.client.render.FontRenderer;
-import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.tessellator.Tessellator;
 import net.minecraft.core.lang.I18n;
 import org.lwjgl.opengl.GL11;
 
