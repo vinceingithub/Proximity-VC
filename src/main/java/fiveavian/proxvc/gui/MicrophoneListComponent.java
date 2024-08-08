@@ -110,7 +110,11 @@ public class MicrophoneListComponent implements OptionsComponent {
         y = MARGIN;
         for (String specifier : specifiers) {
             if (relativeMouseY >= y && relativeMouseY < y + BUTTON_HEIGHT) {
-                selectSpecifier(specifier);
+                if (Objects.equals(specifier, specifierOption.value)) {
+                    selectSpecifier(null);
+                } else {
+                    selectSpecifier(specifier);
+                }
                 break;
             }
             y += BUTTON_HEIGHT_WITH_MARGIN;
