@@ -74,7 +74,7 @@ public class ProxVCClient implements ClientModInitializer {
     private void start(Minecraft client) {
         this.client = client;
         voiceChatVolume = new FloatOption(client.gameSettings, "sound.voice_chat", 1.0f);
-        isMuted = new BooleanOption(client.gameSettings, "is_muted", true);
+        isMuted = new BooleanOption(client.gameSettings, "is_muted", false);
         usePushToTalk = new BooleanOption(client.gameSettings, "use_push_to_talk", false);
         selectedInputDevice = new StringOption(client.gameSettings, "selected_input_device", null);
         options = new Option[]{voiceChatVolume, isMuted, usePushToTalk, selectedInputDevice};
