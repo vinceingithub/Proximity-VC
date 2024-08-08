@@ -50,11 +50,11 @@ public class ProxVCClient implements ClientModInitializer {
     public final KeyBinding keyPushToTalk = new KeyBinding("key.push_to_talk").setDefault(InputDevice.keyboard, Keyboard.KEY_V);
     public final KeyBinding[] keyBindings = {keyMute, keyPushToTalk};
     public FloatOption voiceChatVolume;
+    public BooleanOption isMuted;
     public BooleanOption usePushToTalk;
     public StringOption selectedInputDevice;
     public Option<?>[] options;
     public Path optionFilePath;
-    public boolean isMuted = false;
     private boolean isMutePressed = false;
 
     public boolean isDisconnected() {
@@ -74,9 +74,10 @@ public class ProxVCClient implements ClientModInitializer {
     private void start(Minecraft client) {
         this.client = client;
         voiceChatVolume = new FloatOption(client.gameSettings, "sound.voice_chat", 1.0f);
+        isMuted = new BooleanOption(client.gameSettings, "is_muted", true);
         usePushToTalk = new BooleanOption(client.gameSettings, "use_push_to_talk", false);
         selectedInputDevice = new StringOption(client.gameSettings, "selected_input_device", null);
-        options = new Option[]{voiceChatVolume, usePushToTalk, selectedInputDevice};
+        options = new Option[]{voiceChatVolume, isMuted, usePushToTalk, selectedInputDevice};
         optionFilePath = FabricLoader.getInstance().getConfigDir().resolve("proxvc_client.properties");
         OptionStore.loadOptions(optionFilePath, options, keyBindings);
         OptionStore.saveOptions(optionFilePath, options, keyBindings);
@@ -91,6 +92,7 @@ public class ProxVCClient implements ClientModInitializer {
 
             OptionsCategory generalCategory = new OptionsCategory("gui.options.page.proxvc.category.general")
                     .withComponent(new FloatOptionComponent(voiceChatVolume))
+                    .withComponent(new BooleanOptionComponent(isMuted))
                     .withComponent(new BooleanOptionComponent(usePushToTalk));
             OptionsCategory devicesCategory = new OptionsCategory("gui.options.page.proxvc.category.devices")
                     .withComponent(new MicrophoneListComponent(device, selectedInputDevice));
@@ -157,7 +159,7 @@ public class ProxVCClient implements ClientModInitializer {
                 isMutePressed = true;
             if (keyMute.isReleaseEvent(InputDevice.keyboard) && isMutePressed) {
                 isMutePressed = false;
-                isMuted = !isMuted;
+                isMuted.value = !isMuted.value;
             }
         }
 
@@ -184,7 +186,7 @@ public class ProxVCClient implements ClientModInitializer {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, client.renderEngine.getTexture("/proxvc.png"));
         GL11.glColor4d(1.0, 1.0, 1.0, 1.0);
         double u = 0.0;
-        if (isMuted) {
+        if (isMuted.value) {
             u = 0.25;
         } else if (device.isClosed()) {
             u = 0.5;
