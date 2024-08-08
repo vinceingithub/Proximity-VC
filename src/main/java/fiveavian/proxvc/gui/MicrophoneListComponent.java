@@ -5,7 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.options.components.OptionsComponent;
 import net.minecraft.client.option.StringOption;
 import net.minecraft.client.render.FontRenderer;
-import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.tessellator.Tessellator;
 import net.minecraft.core.lang.I18n;
 import org.lwjgl.opengl.GL11;
 
@@ -110,7 +110,11 @@ public class MicrophoneListComponent implements OptionsComponent {
         y = MARGIN;
         for (String specifier : specifiers) {
             if (relativeMouseY >= y && relativeMouseY < y + BUTTON_HEIGHT) {
-                selectSpecifier(specifier);
+                if (Objects.equals(specifier, specifierOption.value)) {
+                    selectSpecifier(null);
+                } else {
+                    selectSpecifier(specifier);
+                }
                 break;
             }
             y += BUTTON_HEIGHT_WITH_MARGIN;

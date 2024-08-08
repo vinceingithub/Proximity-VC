@@ -8,4 +8,5 @@ key.mute=Mute Microphone
 key.push_to_talk=Push-to-Talk
 
 options.sound.voice_chat=Voice Chat Volume
+options.is_muted=Is Muted
 options.use_push_to_talk=Use Push-to-Talk
