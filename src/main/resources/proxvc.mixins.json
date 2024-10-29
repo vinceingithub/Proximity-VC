@@ -4,6 +4,7 @@
   "package": "fiveavian.proxvc.mixin",
   "compatibilityLevel": "JAVA_8",
   "client": [
+    "client.ALC10Mixin",
     "client.MinecraftMixin",
     "client.NetClientHandlerMixin",
     "client.WorldRendererMixin",
